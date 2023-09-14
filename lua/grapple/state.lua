@@ -293,6 +293,7 @@ function state.load_all(state_, opts)
         if getmetatable(scope_state) == nil then
             setmetatable(scope_state, {
                 __persist = opts.persist,
+                __resolver = settings.scope,
             })
         end
     end
