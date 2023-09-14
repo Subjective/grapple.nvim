@@ -151,17 +151,7 @@ function state.ensure_loaded(scope_resolver)
     scope_resolver = scope.find_resolver(scope_resolver)
     local scope_ = scope.get(scope_resolver)
 
-    if internal_state[scope_] ~= nil then
-        return scope_
-    end
-
-    local scope_state
-    if scope_resolver.persist then
-        scope_state = state.load(scope_)
-    end
-    if scope_state == nil then
-        scope_state = {}
-    end
+    local scope_state = internal_state[scope_] or (scope_resolver.persist and state.load(scope_)) or {}
     internal_state[scope_] = with_metatable(scope_state, scope_resolver)
 
     return scope_
@@ -284,15 +274,16 @@ function state.state()
 end
 
 ---@param state_
----@param opts? { persist?: boolean }
+---@param opts? { persist?: boolean, resolver?: boolean }
 function state.load_all(state_, opts)
-    opts = opts or { persist = false }
+    opts = vim.tbl_extend("force", { persist = false, resolver = settings.scope }, opts or {})
 
     internal_state = state_
     for _, scope_state in pairs(internal_state) do
         if getmetatable(scope_state) == nil then
             setmetatable(scope_state, {
                 __persist = opts.persist,
+                __resolver = opts.resolver,
             })
         end
     end
